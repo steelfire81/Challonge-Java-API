@@ -1,0 +1,2 @@
+# Challonge-Java-API
+This is a work-in-progress library to access the Challonge API in Java.  Ultimately the plan is to make a library that allows the use of all of the Challonge API's functions within Java for building external applications (for example, I plan on using it to scrape tournament results and build a rating system).  I'm still figuring out exactly how I want to code it, so it's in a very primitive state right now.
