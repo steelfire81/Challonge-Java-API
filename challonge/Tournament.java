@@ -262,6 +262,55 @@ public class Tournament {
 	
 	// Instance methods
 	/**
+	 * deletes this tournament
+	 * 
+	 * @throws ChallongeException if tournament could not be deleted
+	 */
+	public void delete() throws ChallongeException
+	{
+		try
+		{
+			// Generate URL
+			String urlString = Challonge.URL_START + "tournaments/" + id + ".xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
+			URL url = new URL(urlString);
+			
+			// Establish connection
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("DELETE");
+			connection.connect();
+			
+			// Ensure connection went through
+			connection.getResponseCode();
+			if(connection.getErrorStream() != null) // If error text exists...
+				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
+					throw new ChallongeException(ChallongeException.REASON_KEY);
+				else
+				{
+					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+					String errorText = "";
+					String errorLine;
+					while((errorLine = error.readLine()) != null)
+						errorText += errorLine + "\n";
+					error.close();
+					
+					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
+				}
+		}
+		catch(MalformedURLException mfe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_INVALID_URL);
+		}
+		catch(ChallongeException ce)
+		{
+			throw ce;
+		}
+		catch(IOException ioe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
+		}
+	}
+	
+	/**
 	 * returns the ID of this Tournament
 	 * 
 	 * @return unique tournament ID

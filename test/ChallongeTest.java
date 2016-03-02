@@ -25,5 +25,8 @@ public class ChallongeTest {
 		mySubdomainTournament.updateName("This Tournament Will Never Take Place");
 		System.out.println("UPDATED NAME:");
 		System.out.println(mySubdomainTournament);
+		
+		System.out.println("DELETING My New Tournament");
+		myNewTournament.delete();
 	}
 }
