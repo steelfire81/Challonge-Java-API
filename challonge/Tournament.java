@@ -76,13 +76,31 @@ public class Tournament {
 	/**
 	 * creates a new double elimination tournament on Challonge without a subdomain
 	 * 
+	 * @param apiKey key to connect to challonge service
 	 * @param name name of new tournament
 	 * @param customURL url of new tournament
+	 * @param type tournament type (from <b>Tournament.TYPES</b>)
+	 * @return newly created tournament
+	 * @throws ChallongeException if tournament could not be initialized
+	 * @see #createTournament(String, String, String, String, String)
+	 */
+	public static Tournament createTournament(String apiKey, String name, String customURL, String type) throws ChallongeException
+	{
+		return createTournament(apiKey, name, customURL, type, null);
+	}
+	
+	/**
+	 * creates a new double elimination tournament on Challonge with a subdomain (subdomain can be <b>null</b>)
+	 * 
 	 * @param apiKey key to connect to challonge service
+	 * @param name name of new tournament
+	 * @param customURL url of new tournament
+	 * @param type tournament type (from <b>Tournament.TYPES</b>)
+	 * @param subdomain subdomain associated with organization, can be <b>null</b>
 	 * @return newly created tournament
 	 * @throws ChallongeException if tournament could not be initialized
 	 */
-	public static Tournament createTournament(String name, String customURL, String apiKey, String type) throws ChallongeException
+	public static Tournament createTournament(String apiKey, String name, String customURL, String type, String subdomain) throws ChallongeException
 	{
 		// Ensure valid arguments
 		if(name.length() > NAME_MAX_LENGTH) // Ensure proper length name
@@ -97,10 +115,12 @@ public class Tournament {
 			// Generate URL
 			String urlString = Challonge.URL_START + "tournaments.xml?" + PARAM_KEY + apiKey;
 			
-			urlString += "&" + PARAM_TOURNAMENT_TYPE + TYPE_DOUBLE_ELIM;
-			urlString += "&" + PARAM_TOURNAMENT_NAME + name;
-			urlString += "&" + PARAM_TOURNAMENT_URL + customURL;
-			urlString = Challonge.encodeString(urlString);
+			urlString += "&" + PARAM_TOURNAMENT_TYPE + Challonge.encodeString(type);
+			urlString += "&" + PARAM_TOURNAMENT_NAME + Challonge.encodeString(name);
+			urlString += "&" + PARAM_TOURNAMENT_URL + Challonge.encodeString(customURL);
+			// Subdomain may be null, check before adding it
+			if(subdomain != null)
+				urlString += "&" + PARAM_TOURNAMENT_SUBDOMAIN + Challonge.encodeString(subdomain);
 			URL url = new URL(urlString);
 			
 			// Establish connection
@@ -113,15 +133,24 @@ public class Tournament {
 			if(connection.getErrorStream() != null) // If error text exists...
 				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
 					throw new ChallongeException(ChallongeException.REASON_KEY);
-				else // TODO: Parse error text and add to ChallongeException
-					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS);
+				else
+				{
+					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+					String errorText = "";
+					String errorLine;
+					while((errorLine = error.readLine()) != null)
+						errorText += errorLine + "\n";
+					error.close();
+					
+					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
+				}
 			
 			// Read input
 	        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
 	        String xml = "";
 	        String inputLine;
 	        while ((inputLine = input.readLine()) != null) 
-	        		xml += inputLine + "\n";
+	        	xml += inputLine + "\n";
 	        input.close();
 	        
 	        return createTournamentFromXML(apiKey, null, xml);
@@ -215,6 +244,13 @@ public class Tournament {
 		}
 	}
 	
+	/**
+	 * checks to see if the given String contains a valid tournament type
+	 * 
+	 * @param type String containing desired type of tournament to be created
+	 * @return <b>true</b> if type is valid, <b>false</b> otherwise
+	 * @see #TYPES
+	 */
 	public static boolean validTournamentType(String type)
 	{
 		for(int i = 0; i < TYPES.length; i++)
@@ -225,14 +261,97 @@ public class Tournament {
 	}
 	
 	// Instance methods
+	/**
+	 * returns the ID of this Tournament
+	 * 
+	 * @return unique tournament ID
+	 */
 	public int getID()
 	{
 		return id;
 	}
 	
+	/**
+	 * returns the name of this Tournament
+	 * 
+	 * @return the name of this Tournament
+	 */
+	public String getName()
+	{
+		return name;
+	}
+	
+	/**
+	 * returns a String representation of this Tournament
+	 * 
+	 * @return String representation of this Tournament
+	 */
 	@Override
 	public String toString() // for testing purposes
 	{
 		return name + ": (ID: " + id + ") (URL: " + url + ")";
+	}
+	
+	/**
+	 * updates the name of this Tournament
+	 * 
+	 * @param newName new name 
+	 */
+	public void updateName(String newName) throws ChallongeException
+	{
+		try
+		{
+			// Ensure name is valid
+			if(newName.length() > NAME_MAX_LENGTH)
+				throw new ChallongeException(ChallongeException.REASON_NAME_LENGTH);
+			
+			// Generate URL
+			String urlString = Challonge.URL_START + "tournaments/" + id + ".xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
+			urlString += "&" + PARAM_TOURNAMENT_NAME + Challonge.encodeString(newName);
+			URL url = new URL(urlString);
+			
+			// Establish connection
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("PUT");
+			
+			// Write body parameters
+			connection.setDoOutput(true);
+			String body = PARAM_TOURNAMENT_NAME + Challonge.encodeString(newName);
+			connection.getOutputStream().write(body.toString().getBytes());
+			connection.getOutputStream().flush();
+			connection.connect();
+			
+			// Ensure connection went through
+			connection.getResponseCode();
+			if(connection.getErrorStream() != null) // If error text exists...
+				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
+					throw new ChallongeException(ChallongeException.REASON_KEY);
+				else
+				{
+					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+					String errorText = "";
+					String errorLine;
+					while((errorLine = error.readLine()) != null)
+						errorText += errorLine + "\n";
+					error.close();
+					
+					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
+				}
+			
+			// If connection went through, change name
+			name = newName;
+		}
+		catch(MalformedURLException mfe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_INVALID_URL);
+		}
+		catch(ChallongeException ce)
+		{
+			throw ce;
+		}
+		catch(IOException ioe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
+		}
 	}
 }
