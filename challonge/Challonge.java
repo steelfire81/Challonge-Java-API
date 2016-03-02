@@ -72,7 +72,7 @@ public class Challonge {
 	        String xml = "";
 	        String inputLine;
 	        while ((inputLine = input.readLine()) != null) 
-	        		xml += inputLine + "\n";
+	        	xml += inputLine + "\n";
 	        input.close();
 	        
 	        return Tournament.createTournamentListFromXML(apiKey, subdomain, xml);
