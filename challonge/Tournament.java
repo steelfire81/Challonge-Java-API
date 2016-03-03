@@ -22,6 +22,7 @@ public class Tournament {
 	
 	// CONSTANTS - Parameters
 	private static final String PARAM_KEY = "api_key=";
+	private static final String PARAM_PARTICIPANT_NAME = "participant[name]=";
 	private static final String PARAM_TOURNAMENT_NAME = "tournament[name]=";
 	private static final String PARAM_TOURNAMENT_SUBDOMAIN = "tournament[subdomain]=";
 	private static final String PARAM_TOURNAMENT_TYPE = "tournament[tournament_type]=";
@@ -264,6 +265,70 @@ public class Tournament {
 	}
 	
 	// Instance methods
+	/**
+	 * adds a new participant to this Tournament's participant list from a username
+	 * 
+	 * @param name desired username to be added
+	 * @throws ChallongeException if the user could not be added
+	 */
+	public void addParticipant(String name) throws ChallongeException
+	{
+		try
+		{
+			// Generate URL
+			String urlString = Challonge.URL_START + "tournaments/" + id + "/participants.xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
+			urlString += "&" + PARAM_PARTICIPANT_NAME + Challonge.encodeString(name);
+			URL url = new URL(urlString);
+			
+			// Establish connection
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod("GET");
+			
+			// Write body parameters
+			connection.setDoOutput(true);
+			String body = PARAM_PARTICIPANT_NAME + Challonge.encodeString(name);
+			connection.getOutputStream().write(body.toString().getBytes());
+			connection.getOutputStream().flush();
+			connection.connect();
+			
+			// Ensure connection went through
+			connection.getResponseCode();
+			if(connection.getErrorStream() != null) // If error text exists...
+				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
+					throw new ChallongeException(ChallongeException.REASON_KEY);
+				else
+				{
+					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+					String errorText = "";
+					String errorLine;
+					while((errorLine = error.readLine()) != null)
+						errorText += errorLine + "\n";
+					error.close();
+					
+					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
+				}
+			
+			// Update participants list
+			updateParticipants();
+		}
+		catch(UnsupportedEncodingException uee)
+		{
+			throw new ChallongeException(ChallongeException.REASON_ARGUMENTS);
+		}
+		catch(MalformedURLException mfe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_ARGUMENTS);
+		}
+		catch(ChallongeException ce)
+		{
+			throw ce;
+		}
+		catch(IOException ioe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
+		}
+	}
+	
 	/**
 	 * changes the name of this Tournament
 	 * 

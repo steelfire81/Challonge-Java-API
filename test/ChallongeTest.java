@@ -30,8 +30,16 @@ public class ChallongeTest {
 		System.out.println("UPDATED NAME:");
 		System.out.println(mySubdomainTournament);
 		
+		System.out.println("REGISTERING PARTICIPANTS FOR MY NEW TOURNAMENT");
+		myNewTournament.addParticipant("Moe");
+		myNewTournament.addParticipant("Larry");
+		myNewTournament.addParticipant("Curly");
+		System.out.println(myNewTournament);
+		for(int i = 0; i < myNewTournament.getParticipants().size(); i++)
+			System.out.println(myNewTournament.getParticipants().get(i));
+		
 		System.out.println("DELETING NEW TOURNAMENTS");
-		myNewTournament.delete();
+		// myNewTournament.delete();
 		mySubdomainTournament.delete();
 	}
 }
