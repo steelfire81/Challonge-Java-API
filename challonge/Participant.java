@@ -14,23 +14,52 @@ public class Participant {
 	private static final String XML_ID = "id";
 	private static final String XML_NAME = "name";
 	private static final String XML_PARTICIPANT = "participant";
+	private static final String XML_SEED = "seed";
 	
 	// DATA MEMBERS
+	private String apiKey;
 	private String name;
 	private int id;
+	private int seed;
 	
 	// METHODS
 	// Constructors
 	/**
 	 * create a participant given a name and id
 	 * 
+	 * @param key API key necessary for authentication
 	 * @param n name
 	 * @param i id
+	 * @param s seed
 	 */
-	private Participant(String n, int i)
+	private Participant(String key, String n, int i, int s)
 	{
+		apiKey = key;
 		name = n;
 		id = i;
+		seed = s;
+	}
+	
+	// Static
+	/**
+	 * creates a Participant from an XML element
+	 * 
+	 * @param e XML element containing a single participant
+	 * @return newly created Participant
+	 */
+	private static Participant createParticipantFromElement(String apiKey, Element e) throws ChallongeException
+	{
+		try
+		{
+			String name = e.getElementsByTagName(XML_NAME).item(0).getTextContent();
+			int id = Integer.parseInt(e.getElementsByTagName(XML_ID).item(0).getTextContent());
+			int seed = Integer.parseInt(e.getElementsByTagName(XML_SEED).item(0).getTextContent());
+			return new Participant(apiKey, name, id, seed);
+		}
+		catch(NumberFormatException nfe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_XML);
+		}
 	}
 	
 	/**
@@ -39,7 +68,7 @@ public class Participant {
 	 * @param xml String containing Challonge xml response
 	 * @return a single Participant
 	 */
-	/* package */ static Participant createParticipantFromXML(String xml)
+	/* package */ static Participant createParticipantFromXML(String apiKey, String xml)
 	{
 		try
 		{
@@ -49,10 +78,7 @@ public class Participant {
 			Document doc = builder.parse(input);
 			
 			Element e = (Element) doc.getElementsByTagName(XML_PARTICIPANT).item(0);
-			String name = e.getElementsByTagName(XML_NAME).item(0).getTextContent();
-			int id = Integer.parseInt(e.getElementsByTagName(XML_ID).item(0).getTextContent()); // TODO: Catch when not an int
-			
-			return new Participant(name, id);	
+			return createParticipantFromElement(apiKey, e);
 		}
 		catch(Exception e) // TODO: Actually handle exceptions
 		{
@@ -67,7 +93,7 @@ public class Participant {
 	 * @param xml String containing Challonge xml response
 	 * @return a list of Participants
 	 */
-	/* package */ static ArrayList<Participant> createParticipantListFromXML(String xml)
+	/* package */ static ArrayList<Participant> createParticipantListFromXML(String apiKey, String xml)
 	{
 		try
 		{
@@ -79,13 +105,7 @@ public class Participant {
 			ArrayList<Participant> participantList = new ArrayList<Participant>();
 			NodeList list = doc.getElementsByTagName(XML_PARTICIPANT);
 			for(int i = 0; i < list.getLength(); i++)
-			{
-				Element e = (Element) list.item(i);
-				String name = e.getElementsByTagName(XML_NAME).item(0).getTextContent();
-				int id = Integer.parseInt(e.getElementsByTagName(XML_ID).item(0).getTextContent()); // TODO: Catch when not int
-				
-				participantList.add(new Participant(name, id));
-			}
+				participantList.add(createParticipantFromElement(apiKey, (Element) list.item(i)));
 			
 			return participantList;
 		}
@@ -114,6 +134,16 @@ public class Participant {
 	public String getName()
 	{
 		return name;
+	}
+	
+	/**
+	 * returns the seed of this Participant
+	 * 
+	 * @return this Participant's seed
+	 */
+	public int getSeed()
+	{
+		return seed;
 	}
 	
 	/**

@@ -10,8 +10,9 @@ public class ChallongeException extends IOException {
 	public static final String REASON_ARGUMENTS = "Invalid arguments";
 	public static final String REASON_NAME_LENGTH = "Name too long";
 	public static final String REASON_INVALID_URL = "Invalid URL";
-	public static final String REASON_XML = "Could not parse input XML";
+	public static final String REASON_XML = "Improperly formatted XML";
 	public static final String REASON_TOURNEY_TYPE = "Invalid tournament type";
+	public static final String REASON_PROTOCOL = "Invalid protocol";
 	
 	// METHODS
 	public ChallongeException()

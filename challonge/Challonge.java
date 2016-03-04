@@ -3,6 +3,7 @@ package challonge;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -61,20 +62,8 @@ public class Challonge {
 			if(subdomain != null)
 				urlString += "&" + PARAM_SUBDOMAIN + encodeString(subdomain);
 			URL url = new URL(urlString);
+			String xml = sendHttpRequest(url, "GET");
 			
-			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("GET");
-			connection.connect();
-			
-			// Read input
-	        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	        String xml = "";
-	        String inputLine;
-	        while ((inputLine = input.readLine()) != null) 
-	        	xml += inputLine + "\n";
-	        input.close();
-	        
 	        return Tournament.createTournamentListFromXML(apiKey, subdomain, xml);
 		}
 		catch(MalformedURLException mfe)
@@ -89,5 +78,93 @@ public class Challonge {
 		{
 			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
 		}
+	}
+	
+	/**
+	 * sends an HTTP request to the Challonge server
+	 * 
+	 * @param url base URL of the request
+	 * @param method request method
+	 * @return the server's XML response
+	 * @throws ChallongeException if request could not be processed properly
+	 */
+	/* package */ static String sendHttpRequest(URL url, String method) throws ChallongeException
+	{
+		return sendHttpRequest(url, method, null);
+	}
+	
+	/**
+	 * sends an HTTP request to the Challonge server
+	 * 
+	 * @param url base URL of the request
+	 * @param method request method
+	 * @param body body of request (can be <b>null</b>)
+	 * @return the server's XML response
+	 * @throws ChallongeException if request could not be processed properly
+	 */
+	/* package */ static String sendHttpRequest(URL url, String method, String body) throws ChallongeException
+	{
+		try
+		{
+			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+			connection.setRequestMethod(method);
+			
+			// Send body, if applicable
+			if(body != null)
+			{
+				// Write body parameters
+				connection.setDoOutput(true);
+				OutputStream output = connection.getOutputStream();
+				output.write(body.toString().getBytes());
+				output.flush();
+			}
+			connection.connect();
+			
+			// Check for errors
+			int code = connection.getResponseCode();
+			if(connection.getErrorStream() != null) // If error text exists...
+				if(code == HttpURLConnection.HTTP_UNAUTHORIZED)
+					throw new ChallongeException(ChallongeException.REASON_KEY);
+				else
+				{
+					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
+					String errorText = "";
+					String errorLine;
+					while((errorLine = error.readLine()) != null)
+						errorText += errorLine + "\n";
+					error.close();
+					
+					throw new ChallongeException(getConnectionErrorReason(errorText));
+				}
+			
+			// If connection successful, read and return XML input
+	        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+	        String xml = "";
+	        String inputLine;
+	        while ((inputLine = input.readLine()) != null) 
+	        	xml += inputLine + "\n";
+	        input.close();
+	        
+	        return xml;
+		}
+		catch(ChallongeException ce)
+		{
+			throw ce;
+		}
+		catch(IOException ioe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
+		}
+	}
+	
+	/**
+	 * gets the reason for an error xml response
+	 * 
+	 * @param xml error xml response
+	 * @return String containing description of error
+	 */
+	private static String getConnectionErrorReason(String xml)
+	{
+		return xml; // TODO: Actually extract error reason from xml
 	}
 }

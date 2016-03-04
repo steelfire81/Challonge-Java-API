@@ -127,36 +127,8 @@ public class Tournament {
 				urlString += "&" + PARAM_TOURNAMENT_SUBDOMAIN + Challonge.encodeString(subdomain);
 			URL url = new URL(urlString);
 			
-			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("POST");
-			connection.connect();
-			
-			// Check for errors
-			connection.getResponseCode();
-			if(connection.getErrorStream() != null) // If error text exists...
-				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
-					throw new ChallongeException(ChallongeException.REASON_KEY);
-				else
-				{
-					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-					String errorText = "";
-					String errorLine;
-					while((errorLine = error.readLine()) != null)
-						errorText += errorLine + "\n";
-					error.close();
-					
-					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
-				}
-			
-			// Read input
-	        BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-	        String xml = "";
-	        String inputLine;
-	        while ((inputLine = input.readLine()) != null) 
-	        	xml += inputLine + "\n";
-	        input.close();
-	        
+			// Send request and process response
+			String xml = Challonge.sendHttpRequest(url, "POST");
 	        return createTournamentFromXML(apiKey, null, xml);
 		}
 		catch(UnsupportedEncodingException uee)
@@ -279,34 +251,10 @@ public class Tournament {
 			String urlString = Challonge.URL_START + "tournaments/" + id + "/participants.xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
 			urlString += "&" + PARAM_PARTICIPANT_NAME + Challonge.encodeString(name);
 			URL url = new URL(urlString);
+			String body = PARAM_PARTICIPANT_NAME + Challonge.encodeString(name);
 			
 			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("GET");
-			
-			// Write body parameters
-			connection.setDoOutput(true);
-			String body = PARAM_PARTICIPANT_NAME + Challonge.encodeString(name);
-			connection.getOutputStream().write(body.toString().getBytes());
-			connection.getOutputStream().flush();
-			connection.connect();
-			
-			// Ensure connection went through
-			connection.getResponseCode();
-			if(connection.getErrorStream() != null) // If error text exists...
-				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
-					throw new ChallongeException(ChallongeException.REASON_KEY);
-				else
-				{
-					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-					String errorText = "";
-					String errorLine;
-					while((errorLine = error.readLine()) != null)
-						errorText += errorLine + "\n";
-					error.close();
-					
-					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
-				}
+			Challonge.sendHttpRequest(url, "POST", body);
 			
 			// Update participants list
 			updateParticipants();
@@ -342,38 +290,12 @@ public class Tournament {
 			if(newName.length() > NAME_MAX_LENGTH)
 				throw new ChallongeException(ChallongeException.REASON_NAME_LENGTH);
 			
-			// Generate URL
+			// Generate and send request
 			String urlString = Challonge.URL_START + "tournaments/" + id + ".xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
 			urlString += "&" + PARAM_TOURNAMENT_NAME + Challonge.encodeString(newName);
 			URL url = new URL(urlString);
-			
-			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("PUT");
-			
-			// Write body parameters
-			connection.setDoOutput(true);
 			String body = PARAM_TOURNAMENT_NAME + Challonge.encodeString(newName);
-			connection.getOutputStream().write(body.toString().getBytes());
-			connection.getOutputStream().flush();
-			connection.connect();
-			
-			// Ensure connection went through
-			connection.getResponseCode();
-			if(connection.getErrorStream() != null) // If error text exists...
-				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
-					throw new ChallongeException(ChallongeException.REASON_KEY);
-				else
-				{
-					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-					String errorText = "";
-					String errorLine;
-					while((errorLine = error.readLine()) != null)
-						errorText += errorLine + "\n";
-					error.close();
-					
-					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
-				}
+			Challonge.sendHttpRequest(url, "PUT", body);
 			
 			// If connection went through, change name
 			name = newName;
@@ -401,31 +323,9 @@ public class Tournament {
 	{
 		try
 		{
-			// Generate URL
 			String urlString = Challonge.URL_START + "tournaments/" + id + ".xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
 			URL url = new URL(urlString);
-			
-			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("DELETE");
-			connection.connect();
-			
-			// Ensure connection went through
-			connection.getResponseCode();
-			if(connection.getErrorStream() != null) // If error text exists...
-				if(connection.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED)
-					throw new ChallongeException(ChallongeException.REASON_KEY);
-				else
-				{
-					BufferedReader error = new BufferedReader(new InputStreamReader(connection.getErrorStream()));
-					String errorText = "";
-					String errorLine;
-					while((errorLine = error.readLine()) != null)
-						errorText += errorLine + "\n";
-					error.close();
-					
-					throw new ChallongeException(ChallongeException.REASON_ARGUMENTS + "\n" + errorText);
-				}
+			Challonge.sendHttpRequest(url, "DELETE");
 		}
 		catch(MalformedURLException mfe)
 		{
@@ -492,26 +392,11 @@ public class Tournament {
 	{
 		try
 		{
-			// Generate URL
 			String urlString = Challonge.URL_START + "tournaments/" + id + "/participants.xml?";
 			urlString += PARAM_KEY + Challonge.encodeString(apiKey);
 			URL url = new URL(urlString);
-			
-			// Establish connection
-			HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-			connection.setRequestMethod("GET");
-			connection.connect();
-			
-			// Read input
-			BufferedReader input = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-			String xml = "";
-			String inputLine;
-			while((inputLine = input.readLine()) != null)
-				xml += inputLine + "\n";
-			input.close();
-			
-			
-			participants = Participant.createParticipantListFromXML(xml);
+			String xml = Challonge.sendHttpRequest(url, "GET");
+			participants = Participant.createParticipantListFromXML(apiKey, xml);
 			return participants;
 		}
 		catch(MalformedURLException mfe)
