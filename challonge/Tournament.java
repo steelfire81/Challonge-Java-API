@@ -372,6 +372,29 @@ public class Tournament {
 	}
 	
 	/**
+	 * start this tournament
+	 * 
+	 * @throws ChallongeException if tournament could not be started
+	 */
+	public void start() throws ChallongeException
+	{
+		try
+		{
+			String urlString = Challonge.URL_START + "tournaments/" + id + "/start.xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
+			URL url = new URL(urlString);
+			Challonge.sendHttpRequest(url, "POST");
+		}
+		catch(ChallongeException ce)
+		{
+			throw ce;
+		}
+		catch(IOException ioe)
+		{
+			throw new ChallongeException(ChallongeException.REASON_DEFAULT);
+		}
+	}
+	
+	/**
 	 * returns a String representation of this Tournament
 	 * 
 	 * @return String representation of this Tournament

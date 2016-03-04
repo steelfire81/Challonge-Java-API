@@ -38,8 +38,10 @@ public class ChallongeTest {
 		for(int i = 0; i < myNewTournament.getParticipants().size(); i++)
 			System.out.println(myNewTournament.getParticipants().get(i));
 		
-		System.out.println("DELETING NEW TOURNAMENTS");
-		myNewTournament.delete();
+		System.out.println("DELETING SUBDOMAIN TOURNAMENT");
 		mySubdomainTournament.delete();
+		
+		System.out.println("STARTING MY NEW TOURNAMENT");
+		myNewTournament.start();
 	}
 }

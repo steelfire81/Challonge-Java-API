@@ -1,0 +1,11 @@
+INTENDED CHANGES:
+
+IN PROGRESS:
+ - add support for all functions listed in Challonge API V1 (http://api.challonge.com/v1/)
+
+NEAR FUTURE:
+ - redo exception handling to give better feedback as to why an exception was passed
+ - make HTTP request methods constants
+
+SOON(TM):
+ - revise HTTP request URL generation (make it less sloppy)
