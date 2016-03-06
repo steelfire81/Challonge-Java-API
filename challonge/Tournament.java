@@ -52,6 +52,7 @@ public class Tournament {
 	private String description;
 	private String type;
 	private ArrayList<Participant> participants;
+	private ArrayList<Match> matches;
 	
 	// METHODS
 	// Constructors
@@ -74,6 +75,7 @@ public class Tournament {
 		type = t;
 		
 		updateParticipants();
+		updateMatches();
 	}
 	
 	// Static
@@ -216,6 +218,7 @@ public class Tournament {
 		}
 		catch (Exception e)
 		{
+			e.printStackTrace();
 			throw new ChallongeException(ChallongeException.REASON_XML);
 		}
 	}
@@ -352,6 +355,16 @@ public class Tournament {
 	}
 	
 	/**
+	 * returns the list of Matches in this Tournament
+	 * 
+	 * @return the list of Matches in this Tournament
+	 */
+	public ArrayList<Match> getMatches()
+	{
+		return matches;
+	}
+	
+	/**
 	 * returns the name of this Tournament
 	 * 
 	 * @return the name of this Tournament
@@ -359,6 +372,22 @@ public class Tournament {
 	public String getName()
 	{
 		return name;
+	}
+	
+	/**
+	 * gets a participant from this Tournament's participant list by ID number
+	 * 
+	 * @param id desired participant's ID number
+	 * @return Participant with desired ID number, or <b>null</b> if not found
+	 */
+	public Participant getParticipantByID(int id)
+	{
+		for(int i = 0; i < participants.size(); i++)
+			if(participants.get(i).getID() == id)
+				return participants.get(i);
+		
+		// Not found
+		return null;
 	}
 	
 	/**
@@ -403,6 +432,25 @@ public class Tournament {
 	public String toString() // for testing purposes
 	{
 		return name + ": (ID: " + id + ") (URL: " + url + ")";
+	}
+	
+	public ArrayList<Match> updateMatches() throws ChallongeException
+	{
+		System.out.println("Getting matches for " + name); // debug
+		
+		try
+		{
+			String urlString = Challonge.URL_START + "tournaments/" + id + "/matches.xml?" + PARAM_KEY + Challonge.encodeString(apiKey);
+			URL url = new URL(urlString);
+			String xml = Challonge.sendHttpRequest(url, "GET");
+			System.out.println(xml);
+			matches = Match.createMatchListFromXML(apiKey, this, xml);
+			return matches;
+		}
+		catch(Exception e) // TODO: Actually handle exceptions
+		{
+			throw new ChallongeException(ChallongeException.REASON_XML);
+		}
 	}
 	
 	/**

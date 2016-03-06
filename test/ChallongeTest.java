@@ -5,8 +5,8 @@ import challonge.*;
 
 public class ChallongeTest {
 
-	private static final String KEY = ""; // replace with your API key
-	private static final String SUBDOMAIN = ""; // replace with your subdomain
+	private static final String KEY = "G50aJyOpf0Gq1B7tInFMqbuU4aoGEbwyRgexJsRe"; // replace with your API key
+	private static final String SUBDOMAIN = "ggsmash"; // replace with your subdomain
 	
 	public static void main(String[] args) throws ChallongeException
 	{
@@ -38,10 +38,14 @@ public class ChallongeTest {
 		for(int i = 0; i < myNewTournament.getParticipants().size(); i++)
 			System.out.println(myNewTournament.getParticipants().get(i));
 		
-		System.out.println("DELETING SUBDOMAIN TOURNAMENT");
+		System.out.println("DELETING NEW TOURNAMENTS");
 		mySubdomainTournament.delete();
+		myNewTournament.delete();
 		
-		System.out.println("STARTING MY NEW TOURNAMENT");
-		myNewTournament.start();
+		System.out.println("MATCH LIST FROM 1015");
+		for(int i = 0; i < tournaments.size(); i++)
+			if(tournaments.get(i).getName().contains("October"))
+				for(int j = 0; j < tournaments.get(i).getMatches().size(); j++)
+					System.out.println(tournaments.get(i).getMatches().get(j));
 	}
 }

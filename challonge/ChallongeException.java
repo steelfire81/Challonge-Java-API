@@ -13,6 +13,8 @@ public class ChallongeException extends IOException {
 	public static final String REASON_XML = "Improperly formatted XML";
 	public static final String REASON_TOURNEY_TYPE = "Invalid tournament type";
 	public static final String REASON_PROTOCOL = "Invalid protocol";
+	public static final String REASON_MATCH_STATE = "Invalid match state";
+	public static final String REASON_PARTICIPANT_ID = "Invalid partcipant ID";
 	
 	// METHODS
 	public ChallongeException()
