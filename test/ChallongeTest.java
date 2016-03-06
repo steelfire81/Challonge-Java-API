@@ -5,8 +5,8 @@ import challonge.*;
 
 public class ChallongeTest {
 
-	private static final String KEY = "G50aJyOpf0Gq1B7tInFMqbuU4aoGEbwyRgexJsRe"; // replace with your API key
-	private static final String SUBDOMAIN = "ggsmash"; // replace with your subdomain
+	private static final String KEY = ""; // replace with your API key
+	private static final String SUBDOMAIN = ""; // replace with your subdomain
 	
 	public static void main(String[] args) throws ChallongeException
 	{
